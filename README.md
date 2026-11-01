@@ -7,10 +7,9 @@
 
 **Тема исследования:** механизм построения и выполнения Resilience Pipeline на примере Retry и Timeout.
 
-## Демонстрационные проекты
+## Демонстрационный проект
 
 - **PollyDemo** — два исключения, затем успешное выполнение на третьей попытке с использованием Retry и Timeout.
-- **PollyTimeoutDemo** — демонстрация отмены длительной операции при срабатывании Timeout.
 
 ## Запуск
 
@@ -21,7 +20,6 @@
 ```bash
 git submodule update --init --recursive
 dotnet run --project PollyDemo
-dotnet run --project PollyTimeoutDemo
 ```
 
 ## Использование ИИ
