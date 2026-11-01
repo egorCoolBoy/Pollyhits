@@ -1,0 +1,61 @@
+@startuml
+title Polly 8.9.0 — Pipeline: построение и выполнение
+hide footbox
+skinparam monochrome true
+skinparam shadowing false
+
+actor PollyDemo as App
+participant "Builder + extension methods" as B
+participant "Factory + CompositeComponent" as C
+participant ResiliencePipeline as P
+participant "DelegatingComponent\n+ BridgeComponent<object>" as D
+participant "Retry<object>" as R
+participant "Timeout" as T
+participant "Операция" as Op
+
+== Построение ==
+App -> B : AddRetry() → AddTimeout()
+B -> B : сохранить фабрики и настройки в _entries
+App -> B : Build()
+B -> B : BuildPipelineComponent()
+B -> B : вызвать фабрики: создать RetryResilienceStrategy<object>\nи TimeoutResilienceStrategy; обернуть соответственно\nв BridgeComponent<object> и BridgeComponent
+B -> C : CreateComposite(components)
+C -> C : CompositeComponent.Create():\nсоздать DelegatingComponent(BridgeComponent<object>(Retry))\nNext = BridgeComponent(Timeout)
+C --> B : корневой CompositeComponent
+B -> P : new ResiliencePipeline(component, …)
+B --> App : pipeline
+
+== Выполнение ==
+App -> P : ExecuteAsync(callback)
+P -> C : ExecuteCore(…)
+C -> D : выполнить FirstComponent
+D -> R : ExecuteCore(continuation)
+
+loop попытки Retry, пока не достигнут результат или лимит
+    R -> D : вызвать continuation (callback)
+    D -> D : ExecuteNext(Next, callback, …)
+    D -> T : bridge.Strategy.ExecuteCore(callback, context, state)
+    T -> Op : выполнить пользовательскую операцию
+    Op --> T : результат / исключение
+    T --> D : Outcome
+    D --> R : Outcome
+    R -> R : проверить условие повторной попытки
+end
+
+R --> D : итоговый Outcome
+D --> C : Outcome
+C --> P : Outcome
+P --> App : результат или повторно выброшенное исключение
+
+note over App,Op
+  Обзорная диаграмма: служебные callback и обёртки объединены.
+  Фабрики вызываются при Build(), а не при AddRetry/AddTimeout.
+  Retry — внешняя стратегия, Timeout выполняется внутри каждой попытки.
+  При повторе Retry вызывает continuation заново; Build() не повторяется.
+  ExecuteNext распознаёт BridgeComponent и вызывает его Strategy напрямую;
+  BridgeComponent.ExecuteCore() для Timeout на этом пути не вызывается.
+  Преобразование исключений в Outcome выполняется внутри механизма Polly;
+  ExecuteAsync возвращает результат или повторно выбрасывает исключение.
+  Контекст, телеметрия, преобразования типов и таймеры опущены.
+end note
+@enduml

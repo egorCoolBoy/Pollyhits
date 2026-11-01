@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Build the checked-out sources for the demo with the installed .NET 8 SDK. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Polly</RootNamespace>
+    <Version>8.9.0</Version>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../Polly/src/Polly.Core/**/*.cs"
+             Exclude="../Polly/src/Polly.Core/obj/**;../Polly/src/Polly.Core/bin/**"
+             LinkBase="Polly.Core" />
+    <Compile Include="../Polly/src/Shared/DebuggerDisableUserUnhandledExceptionsAttribute.cs" LinkBase="Shared" />
+    <Using Include="Polly.Utils" />
+    <Using Include="System.Collections" />
+    <Using Include="System.Collections.Concurrent" />
+    <Using Include="System.Diagnostics" />
+    <Using Include="System.Reflection" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,3 @@
+[submodule "Polly"]
+	path = Polly
+	url = https://github.com/App-vNext/Polly.git
